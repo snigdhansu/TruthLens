@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+.slick-carousel-container .slick-track,
+.slick-carousel-container .slick-slide {
+  background: transparent !important;
+}
+
+.slick-slide {
+  padding: 0 10px; /* Adjust the spacing between slides */
+}
+
+/* Custom CSS for react-slick */
+.slick-slide {
+  background-color: transparent !important;
+}
+
+.slick-track {
+  background-color: transparent !important;
+}
+
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
