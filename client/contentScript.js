@@ -2,6 +2,15 @@
 
 // contentScript.js
 
+// Function to extract main content from any webpage
+function getMainContent() {
+	const element = document.querySelector('body');
+	if (element) {
+		console.log(`Extracting content from body:`); // Log which selector is used
+		return element.innerText.trim();
+	}
+}
+
 // Function to extract live captions
 function getCaptions() {
 	const captions = document.querySelector('.caption-window');
@@ -142,17 +151,102 @@ function injectStyles() {
 // Inject styles when script loads
 injectStyles();
 
-// Set an interval to capture and accumulate captions
-setInterval(() => {
-	const newCaption = getCaptions();
-	const currentTime = Date.now();
+// Function to display a fact-check button when text is selected
+function displayFactCheckButton() {
+	const selectedText = window.getSelection().toString().trim();
+	if (selectedText) {
+		// Create button if not already created
+		let button = document.querySelector('#fact-check-button');
+		if (!button) {
+			button = document.createElement('button');
+			button.id = 'fact-check-button';
+			button.innerText = 'Fact-Check Selection';
+			document.body.appendChild(button);
 
-	// Store new captions while waiting
-	if (newCaption) {
-		pendingCaptions += ' ' + newCaption;
+			// Style the button
+			button.style.position = 'absolute';
+			button.style.zIndex = '10000';
+			button.style.padding = '8px 12px';
+			button.style.fontSize = '14px';
+			button.style.backgroundColor = '#ff0000';
+			button.style.color = '#ffffff';
+			button.style.border = 'none';
+			button.style.borderRadius = '8px';
+			button.style.cursor = 'pointer';
+
+			// Add click event to perform fact-checking
+			button.addEventListener('click', () => {
+				performFactCheck(selectedText);
+				button.remove(); // Remove button after use
+			});
+		}
+
+		// Position the button near the selection
+		const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+		button.style.top = `${rect.top + window.scrollY - 40}px`;
+		button.style.left = `${rect.left + window.scrollX}px`;
+	} else {
+		// Remove button if no text is selected
+		const button = document.querySelector('#fact-check-button');
+		if (button) button.remove();
+	}
+}
+// Check if the current site is YouTube
+if (window.location.hostname.includes('youtube.com')) {
+	let newText = '';
+	setInterval(() => {
+		const currentTime = Date.now();
+		const newCaption = getCaptions(); // Get captions from YouTube
+		if (newCaption) {
+			newText = newCaption; // Use newCaption for YouTube
+		}
+		// Store new text while waiting
+		if (newText) {
+			pendingCaptions += ' ' + newText;
+			pendingCaptions = pendingCaptions.trim();
+			console.log('📝 New content captured:', {
+				content: newText,
+				pendingCaptions: pendingCaptions,
+			});
+		}
+
+		// Only process if enough time has passed since last request
+		if (currentTime - lastRequestTime >= MIN_REQUEST_INTERVAL) {
+			lastRequestTime = currentTime;
+
+			// If we have pending content, append them to accumulated captions
+			if (pendingCaptions) {
+				if (accumulatedCaptions) {
+					accumulatedCaptions += ' ' + pendingCaptions;
+				} else {
+					accumulatedCaptions = pendingCaptions;
+				}
+				pendingCaptions = ''; // Reset pending captions
+			}
+
+			// Ensure we don't exceed MAX_WORD_COUNT words
+			if (countWords(accumulatedCaptions) > MAX_WORD_COUNT) {
+				accumulatedCaptions = trimToMaxWords(accumulatedCaptions);
+			}
+
+			// Perform fact check if we have content and no pending check
+			if (!isFactCheckPending && accumulatedCaptions) {
+				performFactCheck(accumulatedCaptions);
+			}
+		}
+	}, 1000);
+} else {
+	const newContent = getMainContent();
+	const currentTime = Date.now(); // Get main content from blogs or other sites
+	if (newContent) {
+		newText = newContent; // Use newContent for blogs
+	}
+	// Store new text while waiting
+	if (newText) {
+		pendingCaptions += ' ' + newText;
 		pendingCaptions = pendingCaptions.trim();
-		console.log('📝 New caption captured:', {
-			caption: newCaption,
+		console.log('📝 New content captured:', {
+			content: newText,
 			pendingCaptions: pendingCaptions,
 		});
 	}
@@ -161,7 +255,7 @@ setInterval(() => {
 	if (currentTime - lastRequestTime >= MIN_REQUEST_INTERVAL) {
 		lastRequestTime = currentTime;
 
-		// If we have pending captions, append them to accumulated captions
+		// If we have pending content, append them to accumulated captions
 		if (pendingCaptions) {
 			if (accumulatedCaptions) {
 				accumulatedCaptions += ' ' + pendingCaptions;
@@ -181,7 +275,7 @@ setInterval(() => {
 			performFactCheck(accumulatedCaptions);
 		}
 	}
-}, 1000);
+}
 
 // Listen for fact-check results from the background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -251,3 +345,6 @@ function showFactCheckPopup(result) {
 		}
 	}, POPUP_DURATION);
 }
+
+// Event listener to detect when text is selected
+document.addEventListener('mouseup', displayFactCheckButton);
