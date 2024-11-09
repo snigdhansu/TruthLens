@@ -3,7 +3,7 @@
 // background.js
 
 // Store API key securely
-const FACT_CHECK_API_KEY = 'AIzaSyDuB2u-QTHdGiUTKlaL8nlzZgY5JWpJ7kk'; // Replace with your actual API key
+const FACT_CHECK_API_KEY = 'AIzaSyDuB2u-QTHdGiUTKlaL8nlzZgY5JWpJ7kk';
 
 // Use chrome.identity API for OAuth
 async function getAccessToken() {
@@ -56,7 +56,7 @@ async function performFactCheck(statement) {
 		const url = 'https://factchecktools.googleapis.com/v1alpha1/claims:search';
 
 		const queryParams = new URLSearchParams({
-			key: FACT_CHECK_API_KEY, // Add API key as query parameter
+			key: FACT_CHECK_API_KEY,
 			query: statement,
 			languageCode: 'en',
 		});
