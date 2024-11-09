@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Truth Lens",
 	"version": "1.0",
-	"description": "Fact-checks YouTube streams in real-time using Google's Fact Check Tools API.",
+	"description": "Fact-checks YouTube streams and blogs in real-time using Google's Fact Check Tools API.",
 	"permissions": ["tabs", "activeTab", "storage", "scripting"],
 	"background": {
 		"service_worker": "background.js",
@@ -10,7 +10,7 @@
 	},
 	"content_scripts": [
 		{
-			"matches": ["*://*.youtube.com/*"],
+			"matches": ["<all_urls>"],
 			"js": ["sentence_tokenizer.js", "contentScript.js"]
 		}
 	],
