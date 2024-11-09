@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	Button,
 	TextField,
@@ -91,6 +91,15 @@ export default function Home() {
 		autoplay: true,
 		autoplaySpeed: 3000,
 	};
+
+	// Use useEffect to auto-populate the search bar with 'q' from URL params
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const query = urlParams.get('q');
+		if (query) {
+			setUrl(decodeURIComponent(query)); // Decode URL-encoded query
+		}
+	}, []);
 
 	return (
 		<ThemeProvider theme={theme}>

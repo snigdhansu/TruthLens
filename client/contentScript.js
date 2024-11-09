@@ -105,7 +105,7 @@ function redirectToFrontend(queryText) {
 		return; // Exit the function if queryText is not valid
 	}
 
-	const frontendURL = `http://localhost:3000/search?q=${encodeURIComponent(
+	const frontendURL = `http://localhost:3000/?q=${encodeURIComponent(
 		queryText,
 	)}`;
 	console.log('Redirecting to frontend with URL:', frontendURL); // Log the URL being redirected to
@@ -117,6 +117,26 @@ function redirectToFrontend(queryText) {
 function injectStyles() {
 	const styleSheet = document.createElement('style');
 	styleSheet.textContent = `
+        @keyframes rainbow-border {
+            0% { border-color: #ff0000; }
+            17% { border-color: #ff8000; }
+            33% { border-color: #ffff00; }
+            50% { border-color: #00ff00; }
+            67% { border-color: #0000ff; }
+            83% { border-color: #8000ff; }
+            100% { border-color: #ff0000; }
+        }
+        
+        @keyframes rainbow-text {
+            0% { color: #ff0000; }
+            17% { color: #ff8000; }
+            33% { color: #ffff00; }
+            50% { color: #00ff00; }
+            67% { color: #0000ff; }
+            83% { color: #8000ff; }
+            100% { color: #ff0000; }
+        }
+
         .fact-check-popup {
             position: fixed;
             bottom: 20px;
@@ -131,6 +151,7 @@ function injectStyles() {
             font-family: Arial, sans-serif;
             font-size: 14px;
             line-height: 1.4;
+            animation: rainbow-border 5s linear infinite;
             backdrop-filter: blur(5px);
         }
 
@@ -138,6 +159,7 @@ function injectStyles() {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
+            animation: rainbow-text 5s linear infinite;
         }
 
         .fact-check-claim {
@@ -155,10 +177,10 @@ function injectStyles() {
 
         .fact-check-rating {
             margin-bottom: 10px;
-            padding: 5px 10px;
             border-radius: 15px;
             display: inline-block;
             font-weight: bold;
+            animation: rainbow-text 5s linear infinite;
         }
 
         .fact-check-link {
@@ -171,6 +193,7 @@ function injectStyles() {
 
         .fact-check-link:hover {
             text-decoration: underline;
+            animation: rainbow-text 5s linear infinite;
         }
     `;
 	document.head.appendChild(styleSheet);
