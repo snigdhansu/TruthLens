@@ -15,8 +15,9 @@ let lastRequestTime = 0;
 let isFactCheckPending = false;
 const MIN_REQUEST_INTERVAL = 2000; // 5 seconds
 const MAX_WORD_COUNT = 30;
-const POPUP_DURATION = 8000; // 8 seconds for popup display
-
+const POPUP_DURATION = 16000; // 16 seconds for popup display
+// Detect if the site is YouTube
+const isYouTube = window.location.hostname.includes('youtube.com');
 // Helper function to count words
 function countWords(text) {
 	return text.split(/\s+/).filter((word) => word.length > 0).length;
@@ -39,7 +40,7 @@ function sendToBackend(claimText) {
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: claimText, // Changed from 'claimText' to 'statement' to match your backend
+		body: claimText,
 	})
 		.then((response) => {
 			if (!response.ok) {
@@ -65,21 +66,77 @@ function sendToBackend(claimText) {
 		});
 }
 
+// Variable to store the last query text
+let lastQueryText = '';
+
 // Function to perform fact check
 function performFactCheck(text) {
 	isFactCheckPending = true;
+	console.log('Sending message for fact-checking:', text);
+	lastQueryText = text; // Store the query text externally
 	chrome.runtime.sendMessage({ type: 'FACT_CHECK', text: text }, (response) => {
 		if (chrome.runtime.lastError) {
 			console.error('Error sending message:', chrome.runtime.lastError);
 			isFactCheckPending = false;
 		}
+		// If no result is found, redirect to frontend with the query
+		else if (
+			!response ||
+			response.status !== 'success' ||
+			!response.claimReview ||
+			response.claimReview.length === 0
+		) {
+			console.log('No valid fact check results found.'); // Log that no results were found
+			if (!isYouTube) {
+				const queryText = text; // Ensure this variable holds the correct text
+				console.log('Query text before redirect:', queryText); // Log the query text
+				redirectToFrontend(queryText); // Pass the correct text to the redirect function
+			} else {
+				console.log('This is a YouTube video, not redirecting.'); // Log if it's a YouTube video
+			}
+		}
 	});
 }
 
-// Add rainbow animation styles to the document
+// Redirect function to frontend with the query for further fact-checking
+function redirectToFrontend(queryText) {
+	if (!queryText) {
+		console.error('No query text provided for redirection.'); // Log an error if queryText is undefined
+		return; // Exit the function if queryText is not valid
+	}
+
+	const frontendURL = `http://localhost:3000/?q=${encodeURIComponent(
+		queryText,
+	)}`;
+	console.log('Redirecting to frontend with URL:', frontendURL); // Log the URL being redirected to
+	window.open(frontendURL, '_blank'); // Open frontend in a new tab for fact-checking
+	sendToBackend(queryText); // Perform backend check with selected text as query
+}
+
+// Add styles to the document
 function injectStyles() {
 	const styleSheet = document.createElement('style');
 	styleSheet.textContent = `
+        @keyframes rainbow-border {
+            0% { border-color: #ff0000; }
+            17% { border-color: #ff8000; }
+            33% { border-color: #ffff00; }
+            50% { border-color: #00ff00; }
+            67% { border-color: #0000ff; }
+            83% { border-color: #8000ff; }
+            100% { border-color: #ff0000; }
+        }
+        
+        @keyframes rainbow-text {
+            0% { color: #ff0000; }
+            17% { color: #ff8000; }
+            33% { color: #ffff00; }
+            50% { color: #00ff00; }
+            67% { color: #0000ff; }
+            83% { color: #8000ff; }
+            100% { color: #ff0000; }
+        }
+
         .fact-check-popup {
             position: fixed;
             bottom: 20px;
@@ -94,6 +151,7 @@ function injectStyles() {
             font-family: Arial, sans-serif;
             font-size: 14px;
             line-height: 1.4;
+            animation: rainbow-border 5s linear infinite;
             backdrop-filter: blur(5px);
         }
 
@@ -101,6 +159,7 @@ function injectStyles() {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 10px;
+            animation: rainbow-text 5s linear infinite;
         }
 
         .fact-check-claim {
@@ -118,10 +177,10 @@ function injectStyles() {
 
         .fact-check-rating {
             margin-bottom: 10px;
-            padding: 5px 10px;
             border-radius: 15px;
             display: inline-block;
             font-weight: bold;
+            animation: rainbow-text 5s linear infinite;
         }
 
         .fact-check-link {
@@ -134,6 +193,7 @@ function injectStyles() {
 
         .fact-check-link:hover {
             text-decoration: underline;
+            animation: rainbow-text 5s linear infinite;
         }
     `;
 	document.head.appendChild(styleSheet);
@@ -142,46 +202,95 @@ function injectStyles() {
 // Inject styles when script loads
 injectStyles();
 
-// Set an interval to capture and accumulate captions
-setInterval(() => {
-	const newCaption = getCaptions();
-	const currentTime = Date.now();
+// Function to display a fact-check button when text is selected
+function displayFactCheckButton() {
+	const selectedText = window.getSelection().toString().trim();
+	if (selectedText) {
+		// Create button if not already created
+		let button = document.querySelector('#fact-check-button');
+		if (!button) {
+			button = document.createElement('button');
+			button.id = 'fact-check-button';
+			button.innerText = 'Fact-Check Selection';
+			document.body.appendChild(button);
 
-	// Store new captions while waiting
-	if (newCaption) {
-		pendingCaptions += ' ' + newCaption;
-		pendingCaptions = pendingCaptions.trim();
-		console.log('📝 New caption captured:', {
-			caption: newCaption,
-			pendingCaptions: pendingCaptions,
-		});
+			// Style the button
+			button.style.position = 'absolute';
+			button.style.zIndex = '10000';
+			button.style.padding = '8px 12px';
+			button.style.fontSize = '14px';
+			button.style.backgroundColor = '#ff0000';
+			button.style.color = '#ffffff';
+			button.style.border = 'none';
+			button.style.borderRadius = '8px';
+			button.style.cursor = 'pointer';
+
+			// Add click event to perform fact-checking
+			button.addEventListener('click', () => {
+				console.log('Fact-check button clicked, selectedText:', selectedText); // Debugging log
+				if (selectedText) {
+					performFactCheck(selectedText); // Call performFactCheck with selectedText
+				}
+				button.remove(); // Remove button after use
+			});
+		}
+
+		// Position the button near the selection
+		const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+		button.style.top = `${rect.top + window.scrollY - 40}px`;
+		button.style.left = `${rect.left + window.scrollX}px`;
+	} else {
+		// Remove button if no text is selected
+		const button = document.querySelector('#fact-check-button');
+		if (button) button.remove();
 	}
+}
 
-	// Only process if enough time has passed since last request
-	if (currentTime - lastRequestTime >= MIN_REQUEST_INTERVAL) {
-		lastRequestTime = currentTime;
+// Check if the current site is YouTube
+if (window.location.hostname.includes('youtube.com')) {
+	let newText = '';
+	setInterval(() => {
+		const currentTime = Date.now();
+		const newCaption = getCaptions(); // Get captions from YouTube
+		if (newCaption) {
+			newText = newCaption; // Use newCaption for YouTube
+		}
+		// Store new text while waiting
+		if (newText) {
+			pendingCaptions += ' ' + newText;
+			pendingCaptions = pendingCaptions.trim();
+			console.log('📝 New content captured:', {
+				content: newText,
+				pendingCaptions: pendingCaptions,
+			});
+		}
 
-		// If we have pending captions, append them to accumulated captions
-		if (pendingCaptions) {
-			if (accumulatedCaptions) {
-				accumulatedCaptions += ' ' + pendingCaptions;
-			} else {
-				accumulatedCaptions = pendingCaptions;
+		// Only process if enough time has passed since last request
+		if (currentTime - lastRequestTime >= MIN_REQUEST_INTERVAL) {
+			lastRequestTime = currentTime;
+
+			// If we have pending content, append them to accumulated captions
+			if (pendingCaptions) {
+				if (accumulatedCaptions) {
+					accumulatedCaptions += ' ' + pendingCaptions;
+				} else {
+					accumulatedCaptions = pendingCaptions;
+				}
+				pendingCaptions = ''; // Reset pending captions
 			}
-			pendingCaptions = ''; // Reset pending captions
-		}
 
-		// Ensure we don't exceed MAX_WORD_COUNT words
-		if (countWords(accumulatedCaptions) > MAX_WORD_COUNT) {
-			accumulatedCaptions = trimToMaxWords(accumulatedCaptions);
-		}
+			// Ensure we don't exceed MAX_WORD_COUNT words
+			if (countWords(accumulatedCaptions) > MAX_WORD_COUNT) {
+				accumulatedCaptions = trimToMaxWords(accumulatedCaptions);
+			}
 
-		// Perform fact check if we have content and no pending check
-		if (!isFactCheckPending && accumulatedCaptions) {
-			performFactCheck(accumulatedCaptions);
+			// Perform fact check if we have content and no pending check
+			if (!isFactCheckPending && accumulatedCaptions) {
+				performFactCheck(accumulatedCaptions);
+			}
 		}
-	}
-}, 1000);
+	}, 1000);
+}
 
 // Listen for fact-check results from the background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -196,13 +305,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 			showFactCheckPopup(message.data);
 			sendToBackend(message.data.text); // Send to backend
 
+			// Ensure that the query text is set correctly
+			const queryText = message.data.text; // Set queryText to the fact-checked text
+			console.log('Query text before redirect:', queryText); // Log the query text
+			//redirectToFrontend(queryText); // Pass the correct text to the redirect function
+
+			accumulatedCaptions = ''; // Reset only when a fact is found
+			pendingCaptions = ''; // Clear any pending captions
+		} else {
+			console.warn('No valid fact check results found:', message.data); // Log if no valid results
+			// Ensure that the query text is set correctly
+			if (!isYouTube) {
+				redirectToFrontend(lastQueryText);
+			} // Pass the correct text to the redirect function
+
 			accumulatedCaptions = ''; // Reset only when a fact is found
 			pendingCaptions = ''; // Clear any pending captions
 		}
 	}
 });
 
-// Function to show fact-check results in a popup on the page
+// Maximum allowed length for a URL query string
+const MAX_URL_LENGTH = 2000;
+
+// Function to truncate text if it's too long
+function truncateText(text, maxLength) {
+	return text.length > maxLength ? text.substring(0, maxLength) : text;
+}
+
+// Modify showFactCheckPopup function to check for large text
 function showFactCheckPopup(result) {
 	const existingPopup = document.querySelector('.fact-check-popup');
 	if (existingPopup) {
@@ -211,7 +342,18 @@ function showFactCheckPopup(result) {
 
 	const popup = document.createElement('div');
 	popup.className = 'fact-check-popup';
+	console.log('Displaying popup with result:', result);
 
+	// Ensure result.text is not undefined before building URLs
+	let factText = result.text || '';
+	console.log(factText);
+	// If the factText is too large, truncate it
+	if (factText.length > MAX_URL_LENGTH) {
+		factText = truncateText(factText, MAX_URL_LENGTH);
+		console.warn('Text too long, truncating to fit in URL');
+	}
+
+	// Condition to check if a fact was found and display accordingly
 	if (
 		result.status === 'success' &&
 		result.claimReview &&
@@ -219,12 +361,12 @@ function showFactCheckPopup(result) {
 	) {
 		const claimReview = result.claimReview[0];
 		const webAppSearchLink = `http://localhost:3000/search?q=${encodeURIComponent(
-			result.text,
+			factText,
 		)}`; // Local web app search link
 
 		popup.innerHTML = `
             <div class="fact-check-title">Fact Check Result</div>
-            <div class="fact-check-claim">"${result.text}"</div>
+            <div class="fact-check-claim">"${factText}"</div>
             <div class="fact-check-source"><strong>Source:</strong> ${
 							result.claimant || 'Unknown'
 						}</div>
@@ -239,6 +381,17 @@ function showFactCheckPopup(result) {
 						}" target="_blank" class="fact-check-link">Read Full Review</a>
             <a href="${webAppSearchLink}" target="_blank" class="fact-check-link">Search in Web App</a>
         `;
+	} else if (!isYouTube && factText) {
+		// Redirect to frontend and trigger backend call if no fact found, but only if not on YouTube
+		const webAppSearchLink = `http://localhost:3000/search?q=${encodeURIComponent(
+			factText,
+		)}`;
+		console.log(
+			'Redirecting to frontend for additional fact check:',
+			webAppSearchLink,
+		);
+		window.location.href = webAppSearchLink;
+		return;
 	} else {
 		popup.innerHTML = `<div class="fact-check-title">No Results Found</div>`;
 	}
@@ -251,3 +404,6 @@ function showFactCheckPopup(result) {
 		}
 	}, POPUP_DURATION);
 }
+
+// Event listener to detect when text is selected
+document.addEventListener('mouseup', displayFactCheckButton);
