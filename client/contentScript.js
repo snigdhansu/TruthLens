@@ -15,7 +15,7 @@ let lastRequestTime = 0;
 let isFactCheckPending = false;
 const MIN_REQUEST_INTERVAL = 2000; // 5 seconds
 const MAX_WORD_COUNT = 30;
-const POPUP_DURATION = 8000; // 8 seconds for popup display
+const POPUP_DURATION = 16000; // 16 seconds for popup display
 
 // Helper function to count words
 function countWords(text) {
@@ -39,7 +39,7 @@ function sendToBackend(claimText) {
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: claimText, // Changed from 'claimText' to 'statement' to match your backend
+		body: claimText,
 	})
 		.then((response) => {
 			if (!response.ok) {
@@ -76,7 +76,7 @@ function performFactCheck(text) {
 	});
 }
 
-// Add rainbow animation styles to the document
+// Add styles to the document
 function injectStyles() {
 	const styleSheet = document.createElement('style');
 	styleSheet.textContent = `
