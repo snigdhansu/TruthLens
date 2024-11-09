@@ -113,8 +113,8 @@ export default function Home() {
 								</div>
 								<div className='mx-12'>
 									<TextField
-										placeholder='Enter URL'
-										label='Enter URL'
+										placeholder='Enter URL or text'
+										label='Enter URL or text'
 										fullWidth
 										variant='outlined'
 										value={url}
