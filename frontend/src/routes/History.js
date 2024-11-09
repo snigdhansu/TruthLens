@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Card, Divider, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
+import logo from '../logo.png';
 
 const History = () => {
 	// State to manage visibility of the history
@@ -70,11 +71,17 @@ const History = () => {
 				animate={{ opacity: 1 }}
 				transition={{ duration: 0.5 }}>
 				<div className='flex justify-between items-center p-4'>
-					<Typography
-						variant='h4'
-						className='text-center text-black font-bold'>
-						Truth Lens
-					</Typography>
+					<div className='flex'>
+						<Typography
+							variant='h4'
+							className='text-center text-black font-bold'>
+							Truth Lens
+						</Typography>
+						<img
+							src={logo}
+							className='h-12 w-12'
+						/>
+					</div>
 					<Button
 						variant='outlined'
 						color='secondary'

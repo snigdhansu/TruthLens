@@ -1,0 +1,35 @@
+{
+	"manifest_version": 3,
+	"name": "Truth Lens",
+	"version": "1.0",
+	"description": "Fact-checks YouTube streams in real-time using Google's Fact Check Tools API.",
+	"permissions": ["tabs", "activeTab", "storage", "scripting"],
+	"background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
+	"content_scripts": [
+		{
+			"matches": ["*://*.youtube.com/*"],
+			"js": ["sentence_tokenizer.js", "contentScript.js"]
+		}
+	],
+	"host_permissions": ["https://factchecktools.googleapis.com/*"],
+	"action": {
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "icons/logo.png",
+			"48": "icons/logo.png",
+			"128": "icons/logo.png"
+		}
+	},
+	"oauth2": {
+		"client_id": "349141594542-1blt5ri1r23m5981pfa5rkhtd3krup4u.apps.googleusercontent.com",
+		"scopes": ["https://www.googleapis.com/auth/factchecktools"]
+	},
+	"icons": {
+		"16": "icons/logo.png",
+		"48": "icons/logo.png",
+		"128": "icons/logo.png"
+	}
+}
