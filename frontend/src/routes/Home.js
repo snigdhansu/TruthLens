@@ -11,7 +11,6 @@ import {
 	createTheme,
 } from '@mui/material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
-import Slider from 'react-slick'; // Import react-slick
 import History from './History';
 
 // Create a theme using Poppins font
@@ -37,7 +36,7 @@ export default function Home() {
 
 		try {
 			// Make the real API call to localhost:5000/api/claims
-			const response = await fetch('http://localhost:5000/api/claims', {
+			const response = await fetch('http://127.0.0.1:5000/api/claims', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -49,14 +48,12 @@ export default function Home() {
 
 			// Update result with the API response
 			const formattedData = {
-				facts: [
-					{
-						fact: url,
-						score: data.result ? 10 : 2,
-						isTrue: data.result,
-						resources: [{ title: 'Source', url: data.url }],
-					},
-				],
+				fact: {
+					fact: url,
+					score: data.result ? 10 : 2,
+					isTrue: data.result,
+					resources: [{ title: 'Source', url: data.url }],
+				},
 			};
 
 			setResult(formattedData);
@@ -66,17 +63,6 @@ export default function Home() {
 		} finally {
 			setLoading(false);
 		}
-	};
-
-	// Slick Carousel settings
-	const settings = {
-		dots: true,
-		infinite: true,
-		speed: 500,
-		slidesToShow: 1,
-		slidesToScroll: 1,
-		autoplay: true,
-		autoplaySpeed: 3000,
 	};
 
 	// Use useEffect to auto-populate the search bar with 'q' from URL params
@@ -135,7 +121,7 @@ export default function Home() {
 							</div>
 						</div>
 
-						{/* Fact Check Results - Carousel */}
+						{/* Fact Check Results - Single Component */}
 						{result && (
 							<div className='flex items-center justify-center bg-white mt-12'>
 								<div
@@ -145,67 +131,53 @@ export default function Home() {
 										<Typography
 											variant='h5'
 											className='text-center text-black font-bold mb-6'>
-											Truth Lens Results
+											Truth Lens Result
 										</Typography>
 									</div>
 									<Divider />
 
-									{/* Carousel Slider */}
-									<Slider
-										{...settings}
-										className='bg-transparent'
-										style={{ background: 'transparent' }}>
-										{result.facts.map((fact, index) => (
-											<div
-												key={index}
-												className='space-y-4 bg-transparent'>
-												<Typography
-													variant='h6'
-													className='font-medium text-black'>
-													Fact: {fact.fact}
-												</Typography>
-												<Typography
-													variant='body2'
-													className='text-black'>
-													Score: {fact.score}/10
-												</Typography>
+									{/* Single Fact Display */}
+									<div className='space-y-4'>
+										<Typography
+											variant='h6'
+											className='font-medium text-black'>
+											Fact: {result.fact.fact}
+										</Typography>
 
-												<div className='mt-2'>
-													{fact.isTrue ? (
-														<CheckCircle
-															className='text-green-500 mx-auto'
-															style={{ fontSize: 40 }}
-														/>
-													) : (
-														<Cancel
-															className='text-red-500 mx-auto'
-															style={{ fontSize: 40 }}
-														/>
-													)}
-												</div>
+										<div className='mt-2'>
+											{result.fact.isTrue ? (
+												<CheckCircle
+													className='text-green-500 mx-auto'
+													style={{ fontSize: 40 }}
+												/>
+											) : (
+												<Cancel
+													className='text-red-500 mx-auto'
+													style={{ fontSize: 40 }}
+												/>
+											)}
+										</div>
 
-												<Typography
-													variant='body2'
-													className='text-black mt-4'>
-													Relevant Resources:
-												</Typography>
-												<ul className='space-y-2 mt-2'>
-													{fact.resources.map((resource, idx) => (
-														<li key={idx}>
-															<a
-																href={resource.url}
-																target='_blank'
-																rel='noopener noreferrer'
-																className='text-blue-500 hover:underline'>
-																{resource.title}
-															</a>
-														</li>
-													))}
-												</ul>
-												<Divider className='my-4' />
-											</div>
-										))}
-									</Slider>
+										<Typography
+											variant='body2'
+											className='text-black mt-4'>
+											Relevant Resources:
+										</Typography>
+										<ul className='space-y-2 mt-2'>
+											{result.fact.resources.map((resource, idx) => (
+												<li key={idx}>
+													<a
+														href={resource.url}
+														target='_blank'
+														rel='noopener noreferrer'
+														className='text-blue-500 hover:underline'>
+														{resource.title}
+													</a>
+												</li>
+											))}
+										</ul>
+										<Divider className='my-4' />
+									</div>
 								</div>
 							</div>
 						)}

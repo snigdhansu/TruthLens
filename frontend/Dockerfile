@@ -4,14 +4,19 @@ FROM node:20.11.0
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json, install dependencies, and clean npm cache in one step
+# Copy package.json and package-lock.json
 COPY package*.json ./
+
+# Clean npm cache and install dependencies
 RUN npm cache clean --force && npm install
 
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port the app runs on
+# Set the environment variable to allow legacy OpenSSL algorithms
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
+# Expose the port the app will run on
 EXPOSE 3000
 
 # Start the application

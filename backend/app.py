@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 from factcheck import fact_check
 from claimbuster_fact_checker import is_fact_check_claimbuster
@@ -7,12 +8,19 @@ from google_fact_checker import is_fact_check_google
 
 app = Flask(__name__)
 
+CORS(app,  origins=["*"])
+
+@app.route('/api/cors', methods=['GET'])
+def check_cors():
+    return {"message": "CORS is enabled!"}
+
+
 @app.route('/')
 def hello():
     return "Hello, This is Your TruthLens Claims Checker!"
 
 # Flask route to handle claims
-@app.route('/api/claims', methods=['GET'])
+@app.route('/api/claims', methods=['POST'])
 def check_claim():
     data = request.get_json()
     query = data.get('query')

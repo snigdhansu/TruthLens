@@ -1,4 +1,5 @@
 from extractor import Extractor
+import re
 
 QA_llm_model = "mistral"
 Ans_llm_model = "mistral"  # "phi3:14b-instruct"
@@ -8,7 +9,7 @@ QA_LLMEngine = LLMPrompter(QA_llm_model)
 Ans_LLMEngine = LLMPrompter(Ans_llm_model)
 
 def fact_check(claim):
-    e = Extractor(5)
+    e = Extractor(3)
     metadata = e.return_docs(claim)
     # r = RelevantResults()
     # print(r.retrieve_relevant_results(metadata))
@@ -21,13 +22,23 @@ def fact_check(claim):
         evidences.append(evidence)
     print(evidences)
     result = Ans_LLMEngine.prompt_llm("fact-check", {"claim": claim, "statements": evidences})
-    print("########################################")
-    start_index = result.find('(')
-    end_index = result.find(')')
-    print(result[start_index + 1:end_index])
-    truncated_result = result[start_index + 1:end_index]
-    classification, index = truncated_result.split(',')
-    index = int(index[1:])
+    print("######################################## "+result)
+    pattern = r"(\w+), (\d+)"
+    match = re.search(pattern,result)
+    # if '(' in result:
+    #     start_index = result.find('(')
+    #     end_index = result.find(')')
+    #     print(result[start_index + 1:end_index])
+    #     truncated_result = result[start_index + 1:end_index]
+    # else:
+    #     truncated_result = result.strip()
+    classification = None
+    index = None
+    if match:
+        classification = match.group(1)  # 'Refuted'
+        index = int(match.group(2))  # '
+    # classification, index = truncated_result.split(',')[:2]
+    # index = int(index[1:])
     print("Classification: ", classification)
     print("Final: ", metadata[index - 1])
 
