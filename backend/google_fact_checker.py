@@ -4,6 +4,7 @@ API_KEY = 'AIzaSyDuB2u-QTHdGiUTKlaL8nlzZgY5JWpJ7kk'  # Replace with your Google 
 BASE_URL = 'https://factchecktools.googleapis.com/v1alpha1/claims:search'
 
 def is_fact_check_google(query):
+
     params = {
         'query': query,
         'key': API_KEY,
@@ -48,3 +49,4 @@ def is_fact_check_google(query):
 # query = "Covid 19 vaccine does not contains microchip"
 # is_fact_result, message = is_fact(query)
 # print(message)
+

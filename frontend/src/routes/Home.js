@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	Button,
 	TextField,
@@ -92,6 +92,15 @@ export default function Home() {
 		autoplaySpeed: 3000,
 	};
 
+	// Use useEffect to auto-populate the search bar with 'q' from URL params
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		const query = urlParams.get('q');
+		if (query) {
+			setUrl(decodeURIComponent(query)); // Decode URL-encoded query
+		}
+	}, []);
+
 	return (
 		<ThemeProvider theme={theme}>
 			<div className='h-screen flex flex-col'>
@@ -113,8 +122,8 @@ export default function Home() {
 								</div>
 								<div className='mx-12'>
 									<TextField
-										placeholder='Enter URL'
-										label='Enter URL'
+										placeholder='Enter URL or text'
+										label='Enter URL or text'
 										fullWidth
 										variant='outlined'
 										value={url}
