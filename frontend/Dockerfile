@@ -1,14 +1,12 @@
 # Use an official Node.js runtime as a base image
-FROM node:18-alpine
+FROM node:20.11.0
 
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json, install dependencies, and clean npm cache in one step
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install
+RUN npm cache clean --force && npm install
 
 # Copy the rest of the application code
 COPY . .
