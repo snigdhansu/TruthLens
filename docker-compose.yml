@@ -1,0 +1,8 @@
+# @format
+
+version: '3'
+services:
+  frontend:
+    build: .
+    ports:
+      - '3000:80' # Map localhost:3000 to Nginx's port 80
