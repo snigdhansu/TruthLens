@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import {
 	Button,
 	TextField,
-	Card,
 	Typography,
 	CircularProgress,
 	Divider,
@@ -29,56 +28,45 @@ export default function Home() {
 	const [result, setResult] = useState(null);
 	const [error, setError] = useState('');
 
-	const mockApiResponse = () => {
-		// Simulate API response with multiple facts
-		setTimeout(() => {
-			const mockData = {
-				facts: [
-					{
-						fact: 'The moon is made of cheese.',
-						score: 2,
-						isTrue: false,
-						resources: [
-							{ title: 'Moon facts', url: 'https://example.com/moon' },
-						],
-					},
-					{
-						fact: 'Water boils at 100°C at sea level.',
-						score: 10,
-						isTrue: true,
-						resources: [
-							{
-								title: 'Water Boiling Point',
-								url: 'https://example.com/water',
-							},
-						],
-					},
-					{
-						fact: 'Humans can breathe underwater without assistance.',
-						score: 1,
-						isTrue: false,
-						resources: [
-							{
-								title: 'Breathing Underwater',
-								url: 'https://example.com/breathing',
-							},
-						],
-					},
-				],
-			};
-			setResult(mockData);
-			setLoading(false);
-		}, 2000);
-	};
-
-	const handleCheckFact = () => {
+	const handleCheckFact = async () => {
 		if (!url) {
-			setError('Please enter a valid URL');
+			setError('Please enter a valid URL or text');
 			return;
 		}
 		setError('');
 		setLoading(true);
-		mockApiResponse();
+
+		try {
+			// Make the real API call to localhost:5000/api/claims
+			const response = await fetch('http://localhost:5000/api/claims', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ query: url }), // Send the URL or text as 'input'
+			});
+
+			const data = await response.json();
+
+			// Update result with the API response
+			const formattedData = {
+				facts: [
+					{
+						fact: url,
+						score: data.result ? 10 : 2,
+						isTrue: data.result,
+						resources: [{ title: 'Source', url: data.url }],
+					},
+				],
+			};
+
+			setResult(formattedData);
+		} catch (error) {
+			console.error('Error fetching fact-check data:', error);
+			setError('Failed to fetch data. Please try again later.');
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	// Slick Carousel settings

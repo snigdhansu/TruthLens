@@ -34,7 +34,7 @@ function trimToMaxWords(text) {
 
 // Function to send result.text to the backend server via POST
 function sendToBackend(claimText) {
-	const backendURL = 'http://localhost:8004/check';
+	const backendURL = 'http://localhost:5000/api/claims';
 	fetch(backendURL, {
 		method: 'POST',
 		headers: {
