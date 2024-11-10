@@ -105,7 +105,7 @@ function redirectToFrontend(queryText) {
 		return; // Exit the function if queryText is not valid
 	}
 
-	const frontendURL = `http://localhost:3000/?q=${encodeURIComponent(
+	const frontendURL = `https://truthlens.tech/?q=${encodeURIComponent(
 		queryText,
 	)}`;
 	console.log('Redirecting to frontend with URL:', frontendURL); // Log the URL being redirected to
@@ -360,7 +360,7 @@ function showFactCheckPopup(result) {
 		result.claimReview.length > 0
 	) {
 		const claimReview = result.claimReview[0];
-		const webAppSearchLink = `http://localhost:3000/search?q=${encodeURIComponent(
+		const webAppSearchLink = `https://truthlens.tech/?q=${encodeURIComponent(
 			factText,
 		)}`; // Local web app search link
 
@@ -383,7 +383,7 @@ function showFactCheckPopup(result) {
         `;
 	} else if (!isYouTube && factText) {
 		// Redirect to frontend and trigger backend call if no fact found, but only if not on YouTube
-		const webAppSearchLink = `http://localhost:3000/search?q=${encodeURIComponent(
+		const webAppSearchLink = `https://truthlens.tech/?q=${encodeURIComponent(
 			factText,
 		)}`;
 		console.log(
