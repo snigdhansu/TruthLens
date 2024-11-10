@@ -24,7 +24,9 @@ def fact_check(claim):
     result = Ans_LLMEngine.prompt_llm("fact-check", {"claim": claim, "statements": evidences})
     print("######################################## "+result)
     pattern = r"(\w+), (\d+)"
+    pattern_wospace = r"(\w+),(\d+)"
     match = re.search(pattern,result)
+    match2 = re.search(pattern_wospace, result)
     # if '(' in result:
     #     start_index = result.find('(')
     #     end_index = result.find(')')
@@ -37,9 +39,13 @@ def fact_check(claim):
     if match:
         classification = match.group(1)  # 'Refuted'
         index = int(match.group(2))  # '
+    elif match2:
+        classification = match2.group(1)  # 'Refuted'
+        index = int(match2.group(2))  # '
     # classification, index = truncated_result.split(',')[:2]
     # index = int(index[1:])
     print("Classification: ", classification)
+    print(index)
     print("Final: ", metadata[index - 1])
 
     if classification == "Supported":
