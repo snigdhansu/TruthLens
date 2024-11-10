@@ -34,9 +34,9 @@ def is_fact_check_google(query):
 
                     # Simple check: consider it a fact if verdict is "True" or similar
                     if verdict and verdict.lower() in ["true", "correct", "verified"]:
-                        return True, f"The statement is factual based on review by {publisher}."
+                        return {"result": True, "url": url}
                     elif verdict and verdict.lower() in ["false", "misleading", "not true"]:
-                        return False, f"The statement is not factual based on review by {publisher}."
+                        return {"result": False, "url": url}
 
             return None, "No conclusive verdict found in claim reviews."
         else:

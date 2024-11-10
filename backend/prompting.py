@@ -64,6 +64,11 @@ class LLMPrompter:
 
     def prompt_llm(self, task, input):
         prompt = self.choose_prompt(task, input)
-        return self.llm.invoke(prompt).strip()
+        print(f"Performing {task}")
+        print("------------------------------------")
+        print(f"Prompting with: {prompt}")
+        result = self.llm.invoke(prompt).strip()
+        print(f"Result: {result}")
+        return result
 
 

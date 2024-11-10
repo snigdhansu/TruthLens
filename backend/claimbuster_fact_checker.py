@@ -46,28 +46,16 @@ def is_fact_check_claimbuster(claim):
 
         if truth_value is True:
             true_count += 1
-        elif truth_value is False:
+        else:
             false_count += 1
 
-        # Collect URLs and claims
         urls.append(url)
-        claims.append(claim)
 
     # Determine whether there are more True or False values
     if true_count > false_count:
-        result = {
-            "truth_rating": True,
-            "claims": claims,
-            "urls": urls
-        }
+        return {'result': True, 'url': urls[0]}
     else:
-        result = {
-            "truth_rating": False,
-            "claims": claims,
-            "urls": urls
-        }
-
-    return result
+        return {'result': False, 'url': urls[0]}
 
 # Example usage
 # fact_check_response = is_fact_check_claimbuster("Biden is president")

@@ -1,12 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 
-
-def fetch_article_content(url):
+def fetch_article_content(url, timeout=10):
+    # Send GET request to the URL with a timeout
     # Send GET request to the URL
-    # Send GET request to the URL
-    response = requests.get(url)
-
+    response = requests.get(url, timeout=10)
     # Check if the request was successful (status code 200)
     if response.status_code == 200:
         # Parse the HTML content using BeautifulSoup
@@ -23,30 +21,29 @@ def fetch_article_content(url):
         if content is None:
             # Strategy 2: If no main content, try extracting all paragraphs
             content = soup.find_all('p')
-
-        if content is None:
-            # Strategy 3: If still no content, extract all text from the body
-            content = soup.body.get_text(strip=True)
+            if content:
+                content = ' '.join([p.get_text(strip=True) for p in content])
+            else:
+                # Strategy 3: If still no content, extract all text from the body
+                content = soup.body.get_text(strip=True)
 
         # Clean up the extracted text (remove extra spaces and newlines)
-        body_text = ' '.join(content.get_text().strip().split()) if isinstance(content, (
-        str, list)) else content.get_text().strip()
-
-        # Extract title
-        title = soup.title.string if soup.title else 'No title found'
-
-        # Extract author and publication date
-        author = soup.find('span', class_='author') or soup.find('div', class_='author-name')
-        date = soup.find('time', class_='publish-date') or soup.find('span', class_='publish-date')
+        # Ensure content is a string before processing it
+        if isinstance(content, list):
+            body_text = ' '.join([p.get_text(strip=True) for p in content])
+        elif isinstance(content, str):
+            body_text = content.strip()
+        else:
+            body_text = content.get_text(strip=True)
 
         return body_text
     else:
         print(f"Failed to retrieve the page. Status code: {response.status_code}")
         return None
 
-
 # Example usage
-url = 'https://time.com/7171791/what-a-kamala-harris-win-would-mean-for-immigration/'
-article = fetch_article_content(url)
-
-print(article)
+# url = 'https://www.politifact.com/factchecks/2024/oct/24/kamala-harris/kamala-harris-correct-that-immigration-at-the-us-s/'
+# article = fetch_article_content(url)
+#
+# if article:
+#     print(article)
